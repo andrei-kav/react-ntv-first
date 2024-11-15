@@ -1,10 +1,11 @@
 import { useState, useRef } from 'react';
-import { Text, View, StyleSheet } from 'react-native';
+import { Text, View, StyleSheet, Platform } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { ImageSource } from "expo-image";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import * as MediaLibrary from 'expo-media-library';
 import { captureRef } from 'react-native-view-shot';
+import domtoimage from 'dom-to-image';
 
 import ImageViewer from '@/components/ImageViewer';
 import Button from '@/components/Button';
@@ -27,7 +28,7 @@ export default function Index() {
     // After getting the access, the value of the status changes to granted.
     const [status, requestPermission] = MediaLibrary.usePermissions();
 
-    const imageRef = useRef<View | null>(null);
+    const imageRef = useRef<View>();
 
     const imageSource: ImageSource = selectedImage ? { uri: selectedImage } : PlaceholderImage
 
@@ -60,6 +61,32 @@ export default function Index() {
     }
 
     const onSaveImageAsync = async () => {
+        if (Platform.OS === 'web') {
+            await takeAndSavePhotoOnWeb()
+        } else {
+            await takeAndSavePhotoOnMobile()
+        }
+    }
+
+    const takeAndSavePhotoOnWeb = async () => {
+        try {
+            const dataUrl = await domtoimage.toJpeg(imageRef.current, {
+                quality: 1,
+                width: 320,
+                height: 440,
+            });
+
+            let link = document.createElement('a');
+            link.download = 'sticker-smash.jpeg';
+            link.href = dataUrl;
+            link.click();
+            alert('Saved!');
+        } catch (e) {
+            console.log(e);
+        }
+    }
+
+    const takeAndSavePhotoOnMobile = async () => {
         try {
             // take a screenshot
             // the screenshot area will be restricted by the <View ref={imageRef} collapsable={false}> component
