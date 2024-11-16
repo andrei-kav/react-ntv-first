@@ -61,6 +61,7 @@ export default function Index() {
     }
 
     const onSaveImageAsync = async () => {
+        console.log('save image');
         if (Platform.OS === 'web') {
             await takeAndSavePhotoOnWeb()
         } else {
